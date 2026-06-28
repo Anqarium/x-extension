@@ -1,0 +1,37 @@
+/* src/content/overlay/overlay.css */
+.xcf-overlay {
+  border: 1px solid rgb(47, 51, 54);
+  border-radius: 16px;
+  margin: 8px 0;
+  background: #15181c;
+  color: #e7e9ea;
+  font-family: -apple-system, system-ui, sans-serif;
+  overflow: hidden;
+}
+.xcf-overlay__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid rgb(47, 51, 54);
+  font-weight: 700;
+}
+.xcf-overlay__actions { display: flex; gap: 8px; }
+.xcf-btn {
+  background: #1d9bf0; color: #fff; border: none;
+  border-radius: 9999px; padding: 6px 14px; font-weight: 700; cursor: pointer;
+}
+.xcf-btn--ghost { background: transparent; color: #1d9bf0; border: 1px solid #1d9bf0; }
+.xcf-card {
+  display: flex; gap: 10px; padding: 12px 16px;
+  border-bottom: 1px solid rgb(47, 51, 54);
+}
+.xcf-card__avatar { width: 40px; height: 40px; border-radius: 9999px; flex: 0 0 auto; background:#333; }
+.xcf-card__body { flex: 1 1 auto; min-width: 0; }
+.xcf-card__name { font-weight: 700; }
+.xcf-card__handle { color: #71767b; margin-left: 4px; }
+.xcf-card__text { margin: 4px 0; white-space: pre-wrap; word-break: break-word; }
+.xcf-card__likes { color: #71767b; font-size: 13px; }
+.xcf-card__open { color: #1d9bf0; text-decoration: none; font-size: 13px; margin-left: 12px; }
+.xcf-anim .xcf-card { transition: background 0.15s ease; }
+.xcf-anim .xcf-card:hover { background: #1a1e23; }
