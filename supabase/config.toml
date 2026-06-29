@@ -1,0 +1,28 @@
+project_id = "x-extension"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public"]
+extra_search_path = ["public"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[auth]
+enabled = true
+site_url = "http://localhost"
+
+[functions.submit_report]
+verify_jwt = false
+
+[functions.get_verdicts]
+verify_jwt = false
+
+[functions.get_flagged_list]
+verify_jwt = false
+
+[functions.recompute_reputations]
+verify_jwt = false
