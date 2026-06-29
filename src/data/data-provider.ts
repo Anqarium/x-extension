@@ -59,6 +59,24 @@ export class DataProvider {
     lists.whitelist = lists.whitelist.filter(w => w !== normalizeHandle(handle));
     await this.setLists(lists);
   }
+
+  async clearBlocklist(): Promise<void> {
+    const lists = await this.getLists();
+    lists.blocklist = [];
+    await this.setLists(lists);
+  }
+
+  async clearWhitelist(): Promise<void> {
+    const lists = await this.getLists();
+    lists.whitelist = [];
+    await this.setLists(lists);
+  }
+
+  async importLists(incoming: Partial<Lists>): Promise<void> {
+    const norm = (arr?: string[]) =>
+      Array.from(new Set((arr ?? []).map(normalizeHandle).filter(h => h.length > 0)));
+    await this.setLists({ blocklist: norm(incoming.blocklist), whitelist: norm(incoming.whitelist) });
+  }
 }
 
 // Gerçek chrome.storage.sync arkalığı; kota dolarsa local'a düşer.
