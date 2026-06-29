@@ -1,0 +1,20 @@
+/* src/ui/ui-shared/theme.css */
+:root {
+  --xcf-bg: #15181c;
+  --xcf-surface: #1d2127;
+  --xcf-text: #e7e9ea;
+  --xcf-muted: #71767b;
+  --xcf-accent: #1d9bf0;
+  --xcf-border: #2f3336;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--xcf-bg); color: var(--xcf-text);
+  font-family: -apple-system, system-ui, sans-serif;
+}
+.xcf-accent-btn {
+  background: var(--xcf-accent); color: #fff; border: none;
+  border-radius: 9999px; padding: 8px 16px; font-weight: 700; cursor: pointer;
+  transition: opacity .15s ease;
+}
+.xcf-accent-btn:hover { opacity: .9; }
