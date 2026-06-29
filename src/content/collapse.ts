@@ -6,22 +6,10 @@ const COLLAPSED = 'data-xcf-collapsed';
 const BAR = 'data-xcf-bar';
 const HIDDEN = 'data-xcf-prev-display';
 
-// Engellenen hesabın article'ını İÇERİĞİNİ SİLMEDEN collapse eder: mevcut
-// çocuklarını gizler ve yerine küçük bir çubuk ekler. React kontrolündeki
-// DOM'u yok etmez (sayfayı bozmaz).
-export function applyCollapse(article: HTMLElement, lists: Lists): void {
-  const handle = getHandleFromArticle(article);
-  if (!handle) return;
-
-  const action = decideAction(handle, lists);
-
-  if (action !== 'collapse') {
-    if (article.getAttribute(COLLAPSED)) restore(article); // beyaz listeye alınmış olabilir
-    return;
-  }
-  if (article.getAttribute(COLLAPSED)) return; // zaten gizli
-
-  article.setAttribute(COLLAPSED, handle);
+// Bir article'ı içeriğini silmeden gizler ve etiketli bir çubuk ekler.
+export function collapseArticle(article: HTMLElement, label: string, marker: string): void {
+  if (article.getAttribute(COLLAPSED)) return;
+  article.setAttribute(COLLAPSED, marker);
 
   for (const child of Array.from(article.children)) {
     const el = child as HTMLElement;
@@ -34,21 +22,21 @@ export function applyCollapse(article: HTMLElement, lists: Lists): void {
   bar.style.cssText =
     'padding:12px 16px;color:#71767b;font-size:14px;display:flex;justify-content:space-between;align-items:center;';
 
-  const label = document.createElement('span');
-  label.textContent = `@${handle} engellendi`;
-  bar.appendChild(label);
+  const span = document.createElement('span');
+  span.textContent = label;
+  bar.appendChild(span);
 
   const showBtn = document.createElement('button');
   showBtn.textContent = 'Göster';
   showBtn.style.cssText =
     'background:transparent;border:1px solid #536471;color:#e7e9ea;border-radius:9999px;padding:4px 12px;cursor:pointer;';
-  showBtn.addEventListener('click', () => restore(article));
+  showBtn.addEventListener('click', () => restoreArticle(article));
   bar.appendChild(showBtn);
 
   article.appendChild(bar);
 }
 
-function restore(article: HTMLElement): void {
+export function restoreArticle(article: HTMLElement): void {
   article.removeAttribute(COLLAPSED);
   for (const child of Array.from(article.children)) {
     const el = child as HTMLElement;
@@ -58,4 +46,24 @@ function restore(article: HTMLElement): void {
       el.removeAttribute(HIDDEN);
     }
   }
+}
+
+export function isCollapsed(article: HTMLElement): boolean {
+  return article.hasAttribute(COLLAPSED);
+}
+
+export function collapsedMarker(article: HTMLElement): string | null {
+  return article.getAttribute(COLLAPSED);
+}
+
+// Faz 1 davranışı: manuel engelleme listesine göre collapse / geri aç.
+export function applyCollapse(article: HTMLElement, lists: Lists): void {
+  const handle = getHandleFromArticle(article);
+  if (!handle) return;
+  const action = decideAction(handle, lists);
+  if (action !== 'collapse') {
+    if (article.getAttribute(COLLAPSED) === handle) restoreArticle(article);
+    return;
+  }
+  collapseArticle(article, `@${handle} engellendi`, handle);
 }
