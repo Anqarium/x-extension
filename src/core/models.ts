@@ -15,12 +15,63 @@ export type TieBreaker = 'reposts' | 'replies';
 
 export type FilterAction = 'show' | 'collapse';
 
+export type Category =
+  | 'bot' | 'spam' | 'crypto' | 'fake_giveaway' | 'ads' | 'ai_bot' | 'harassment';
+
+export const CATEGORIES: Category[] =
+  ['bot', 'spam', 'crypto', 'fake_giveaway', 'ads', 'ai_bot', 'harassment'];
+
+export const CATEGORY_LABELS: Record<Category, string> = {
+  bot: 'Bot',
+  spam: 'Spam',
+  crypto: 'Kripto Dolandırıcılığı',
+  fake_giveaway: 'Sahte Çekiliş',
+  ads: 'Sürekli Reklam',
+  ai_bot: 'Yapay Zekâ Botu',
+  harassment: 'Taciz',
+};
+
+export type AccountState = 'clean' | 'suspicious' | 'flagged';
+
+export interface Verdict {
+  handle: string;
+  state: AccountState;
+  topCategory: Category | null;
+  maxScore: number;
+}
+
+export type SuspiciousAction = 'off' | 'badge' | 'collapse';
+export type FlaggedAction = 'warn' | 'collapse' | 'remove' | 'autoblock';
+
+export interface CommunityFilterSettings {
+  enabled: boolean;
+  suspiciousAction: SuspiciousAction;
+  flaggedAction: FlaggedAction;
+  enabledCategories: Category[];
+}
+
+export const DEFAULT_COMMUNITY: CommunityFilterSettings = {
+  enabled: true,
+  suspiciousAction: 'badge',
+  flaggedAction: 'collapse',
+  enabledCategories: ['bot', 'spam', 'crypto', 'fake_giveaway', 'ads', 'ai_bot', 'harassment'],
+};
+
+// Verdikt-farkında filtre kararı
+export interface FilterDecision {
+  action: 'show' | 'collapse' | 'badge' | 'remove';
+  autoblock: boolean;
+  reason: 'whitelist' | 'blocklist' | 'community' | 'none';
+  category: Category | null;
+}
+
 export interface Settings {
   overlayEnabledByDefault: boolean;
   tieBreaker: TieBreaker;
   autoScrollDelayMs: number;
   theme: 'dark' | 'light' | 'system';
   animationsEnabled: boolean;
+  community: CommunityFilterSettings;
 }
 
 export interface Lists {
@@ -33,7 +84,8 @@ export const DEFAULT_SETTINGS: Settings = {
   tieBreaker: 'reposts',
   autoScrollDelayMs: 800,
   theme: 'dark',
-  animationsEnabled: true
+  animationsEnabled: true,
+  community: DEFAULT_COMMUNITY,
 };
 
 export const DEFAULT_LISTS: Lists = {
