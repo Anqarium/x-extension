@@ -19,6 +19,6 @@ Deno.serve(async (req) => {
     .from('account_verdicts')
     .select('target_handle, top_category, max_score, state, updated_at')
     .in('target_handle', handles);
-  if (error) return json({ error: error.message }, 500);
+  if (error) return json({ error: 'query_failed' }, 500);
   return json({ verdicts: data ?? [] });
 });

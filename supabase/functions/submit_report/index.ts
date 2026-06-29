@@ -36,21 +36,23 @@ async function recomputeHandle(admin: SupabaseClient, handle: string) {
     const weighted = categoryScore(inputs);
     const reporterCount = new Set(catReports.map((r) => r.reporter_id)).size;
     aggregates.push({ category, weightedScore: weighted, reporterCount });
-    await admin.from('account_category_scores').upsert({
+    const { error: scoreErr } = await admin.from('account_category_scores').upsert({
       target_handle: handle, category,
       weighted_score: weighted, reporter_count: reporterCount,
       updated_at: new Date().toISOString(),
     });
+    if (scoreErr) throw new Error('score_upsert_failed');
   }
 
   const verdict = computeVerdict(aggregates);
-  await admin.from('account_verdicts').upsert({
+  const { error: verdictErr } = await admin.from('account_verdicts').upsert({
     target_handle: handle,
     top_category: verdict.topCategory,
     max_score: verdict.maxScore,
     state: verdict.state,
     updated_at: new Date().toISOString(),
   });
+  if (verdictErr) throw new Error('verdict_upsert_failed');
   return verdict;
 }
 
@@ -82,14 +84,28 @@ Deno.serve(async (req) => {
     .gte('created_at', since);
   if ((count ?? 0) >= DEFAULT_CONFIG.dailyReportLimit) return json({ error: 'rate_limited' }, 429);
 
-  // Raporu kullanıcı bağlamında ekle (RLS), çift oy unique kısıtla reddedilir
+  // Raporu kullanıcı bağlamında ekle (RLS; reporter_id forge edilemez: policy auth.uid()=reporter_id).
   const { error: insErr } = await userClient
     .from('reports')
     .insert({ reporter_id: user.id, target_handle, category });
-  if (insErr && !/duplicate key/i.test(insErr.message)) {
-    return json({ error: insErr.message }, 400);
+
+  // Çift oy (unique kısıt, Postgres kodu 23505): verdikt değişmez → mevcut verdikti dön, yeniden hesaplama yok.
+  if (insErr) {
+    if (insErr.code === '23505') {
+      const { data: existing } = await admin
+        .from('account_verdicts')
+        .select('target_handle, top_category, max_score, state, updated_at')
+        .eq('target_handle', target_handle)
+        .maybeSingle();
+      return json({ ok: true, duplicate: true, verdict: existing ?? null });
+    }
+    return json({ error: 'insert_failed' }, 400);
   }
 
-  const verdict = await recomputeHandle(admin, target_handle);
-  return json({ ok: true, verdict });
+  try {
+    const verdict = await recomputeHandle(admin, target_handle);
+    return json({ ok: true, verdict });
+  } catch (_e) {
+    return json({ error: 'recompute_failed' }, 500);
+  }
 });

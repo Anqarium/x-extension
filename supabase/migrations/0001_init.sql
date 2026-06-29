@@ -20,6 +20,8 @@ create table public.reports (
   target_handle text not null,
   category category not null,
   created_at timestamptz not null default now(),
+  constraint reports_handle_normalized
+    check (target_handle = lower(target_handle) and target_handle = btrim(target_handle)),
   unique (reporter_id, target_handle, category)
 );
 create index reports_target_idx on public.reports (target_handle, category);
@@ -32,6 +34,8 @@ create table public.account_category_scores (
   weighted_score double precision not null default 0,
   reporter_count integer not null default 0,
   updated_at timestamptz not null default now(),
+  constraint scores_handle_normalized
+    check (target_handle = lower(target_handle) and target_handle = btrim(target_handle)),
   primary key (target_handle, category)
 );
 
@@ -41,7 +45,9 @@ create table public.account_verdicts (
   top_category category,
   max_score double precision not null default 0,
   state account_state not null default 'clean',
-  updated_at timestamptz not null default now()
+  updated_at timestamptz not null default now(),
+  constraint verdicts_handle_normalized
+    check (target_handle = lower(target_handle) and target_handle = btrim(target_handle))
 );
 create index account_verdicts_state_idx on public.account_verdicts (state, updated_at);
 

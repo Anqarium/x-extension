@@ -9,6 +9,7 @@ Deno.serve(async (req) => {
 
   const url = new URL(req.url);
   const since = url.searchParams.get('updated_since');
+  if (since && Number.isNaN(Date.parse(since))) return json({ error: 'invalid_since' }, 400);
 
   const client = createClient(URL, ANON);
   let q = client
@@ -16,10 +17,11 @@ Deno.serve(async (req) => {
     .select('target_handle, top_category, state, updated_at')
     .eq('state', 'flagged')
     .order('updated_at', { ascending: true })
+    .order('target_handle', { ascending: true })
     .limit(1000);
   if (since) q = q.gt('updated_at', since);
 
   const { data, error } = await q;
-  if (error) return json({ error: error.message }, 500);
+  if (error) return json({ error: 'query_failed' }, 500);
   return json({ flagged: data ?? [] });
 });

@@ -75,3 +75,9 @@ Güven/itibar matematiği `supabase/functions/_shared/trust-core/` altında saf
 TypeScript olarak yaşar ve Vitest ile tamamen test edilir (`npm test -- trust-core`).
 Edge Functions yalnızca veritabanı I/O + auth yapıp bu çekirdeği çağırır. Böylece
 mantık taşınabilir (Faz 3 panel / mobil aynı çekirdeği kullanabilir) ve test edilebilir kalır.
+
+## Bilinen takip işleri (backlog — gerçek trafikten önce)
+- **recompute_reputations ölçeklenmesi:** Şu an profil başına + rapor başına ayrı sorgu (O(N+M) seri round-trip) ve `profiles` sorgusu `max_rows=1000` ile sınırlı. Gerçek hacimden önce: tüm `account_category_scores`'u tek seferde Map'e çekmek veya tek bir Postgres RPC'sine taşımak; profilleri sayfalamak.
+- **Zaman sönümlemesi olay-güdümlü:** `weighted_score` yalnızca o handle'a yeni rapor gelince (submit_report) yeniden hesaplanıyor; rapor almayan hesabın puanı sönmeden kalır. Periyodik tam yeniden-puanlama işi eklenebilir.
+- **İşlem (transaction) bütünlüğü:** submit_report'taki kategori puanı + verdikt upsert'leri ayrı statement'lar; tek bir Postgres fonksiyonuna alınarak atomik yapılabilir.
+- **`profiles.reports_count`:** şema/spec'te var ama henüz yazılmıyor (rezerve).

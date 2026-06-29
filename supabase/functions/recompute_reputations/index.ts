@@ -28,7 +28,11 @@ async function contextForReporter(admin: SupabaseClient, reporterId: string): Pr
   return contexts;
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
+  // Yalnızca service-role çağırabilir (cron job service-role bearer gönderir).
+  const auth = req.headers.get('Authorization') ?? '';
+  if (auth !== `Bearer ${SERVICE}`) return json({ error: 'unauthorized' }, 401);
+
   const admin = createClient(URL, SERVICE);
   const { data: profiles } = await admin.from('profiles').select('id');
   let updated = 0;
