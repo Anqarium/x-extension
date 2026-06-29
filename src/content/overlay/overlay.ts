@@ -62,7 +62,7 @@ export class SortedOverlay {
 
     const cards = replies.map(r => `
       <div class="xcf-card">
-        <div class="xcf-card__avatar" style="${r.avatarUrl ? `background-image:url(${escapeHtml(r.avatarUrl)});background-size:cover` : ''}"></div>
+        <div class="xcf-card__avatar"></div>
         <div class="xcf-card__body">
           <div>
             <span class="xcf-card__name">${escapeHtml(r.displayName)}</span>
@@ -75,6 +75,14 @@ export class SortedOverlay {
       </div>`).join('');
 
     this.root.innerHTML = header + cards;
+    const avatars = this.root.querySelectorAll<HTMLElement>('.xcf-card__avatar');
+    replies.forEach((r, i) => {
+      const el = avatars[i];
+      if (el && r.avatarUrl && /^https?:\/\//.test(r.avatarUrl)) {
+        el.style.backgroundImage = `url("${r.avatarUrl}")`;
+        el.style.backgroundSize = 'cover';
+      }
+    });
     this.root.querySelector('[data-act="loadall"]')?.addEventListener('click', () => this.cb.onLoadAll());
     this.root.querySelector('[data-act="close"]')?.addEventListener('click', () => this.cb.onClose());
   }

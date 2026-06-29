@@ -10,5 +10,6 @@ export function broadcast(message: RuntimeMessage): void {
 }
 
 export function onMessage(handler: (msg: RuntimeMessage) => void): void {
-  chrome.runtime.onMessage.addListener((msg) => { handler(msg as RuntimeMessage); });
+  // Listener undefined döndürmeli (Promise döndürürse Chrome portu açık tutar).
+  chrome.runtime.onMessage.addListener((msg) => { void handler(msg as RuntimeMessage); });
 }
