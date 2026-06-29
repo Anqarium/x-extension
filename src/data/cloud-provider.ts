@@ -28,18 +28,30 @@ export async function fetchVerdicts(handles: string[]): Promise<Verdict[]> {
   }
 }
 
-// flagged listesi (anon, artımlı).
-export async function fetchFlaggedList(since: string | null): Promise<Verdict[]> {
-  if (!cloudConfigured()) return [];
+export interface FlaggedListResult {
+  verdicts: Verdict[];
+  maxUpdatedAt: string | null;
+}
+
+// flagged listesi (anon, artımlı). Watermark için sunucunun en yeni updated_at'ini de döner.
+export async function fetchFlaggedList(since: string | null): Promise<FlaggedListResult> {
+  if (!cloudConfigured()) return { verdicts: [], maxUpdatedAt: null };
   try {
     const url = new URL(functionUrl('get_flagged_list'));
     if (since) url.searchParams.set('updated_since', since);
     const res = await fetch(url.toString(), { headers: headers() });
-    if (!res.ok) return [];
-    const data = (await res.json()) as { flagged?: VerdictRow[] };
-    return (data.flagged ?? []).map(mapVerdictRow);
+    if (!res.ok) return { verdicts: [], maxUpdatedAt: null };
+    const data = (await res.json()) as { flagged?: (VerdictRow & { updated_at?: string })[] };
+    const rows = data.flagged ?? [];
+    let maxUpdatedAt: string | null = null;
+    for (const r of rows) {
+      if (r.updated_at && (maxUpdatedAt === null || r.updated_at > maxUpdatedAt)) {
+        maxUpdatedAt = r.updated_at;
+      }
+    }
+    return { verdicts: rows.map(mapVerdictRow), maxUpdatedAt };
   } catch {
-    return [];
+    return { verdicts: [], maxUpdatedAt: null };
   }
 }
 

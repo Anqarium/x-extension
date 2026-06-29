@@ -85,9 +85,12 @@ mantık taşınabilir (Faz 3 panel / mobil aynı çekirdeği kullanabilir) ve te
 ## Uzantı tarafı bağlama (Plan B)
 1. Supabase projenizi oluşturup deploy ettikten sonra `src/data/cloud-config.ts`
    içine projenizin `url` (https://<ref>.supabase.co) ve **anon** anahtarını yazın.
-2. Supabase Dashboard → Authentication → URL Configuration → Redirect URLs'e
-   uzantının redirect URL'sini ekleyin: `https://<EXTENSION_ID>.chromiumapp.org/`
-   (Extension ID'yi `chrome://extensions` sayfasında görebilirsiniz.)
+2. **Sabit Extension ID gerekir:** OAuth redirect URL'i (`https://<EXTENSION_ID>.chromiumapp.org/`)
+   Extension ID'den türetilir ve bu ID paketlenmemiş yüklemelerde değişebilir. Kalıcı bir ID
+   için ya uzantıyı paketleyip (`manifest`'e sabit bir `key` ekleyerek) ya da Web Store'a
+   yükleyerek ID'yi sabitleyin. Sonra Supabase Dashboard → Authentication → URL Configuration →
+   Redirect URLs'e bu sabit redirect URL'sini ekleyin. (Extension ID'yi `chrome://extensions`
+   sayfasında görebilirsiniz.)
 3. Authentication → Providers'tan Google ve/veya Twitter (X) sağlayıcılarını
    etkinleştirin.
 4. `npm run build` → `dist/`'i Chrome'a yükleyin. Ayarlar → "Topluluk filtresi"
