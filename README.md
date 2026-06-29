@@ -22,6 +22,10 @@ puanları, yönetim paneli, yapay zekâ destek katmanı) ayrı ele alınır.
 - **Ayarlar paneli:** Koyu tema, sekmeli arayüz; sıralama tercihleri, liste yönetimi
   (arama, toplu temizle, JSON içe/dışa aktarma) ve görünüm ayarları.
 - **Cihazlar arası senkron:** Listeler ve ayarlar `chrome.storage.sync` ile senkronlanır.
+- **Topluluk filtresi (Faz 2):** OAuth giriş, hesapları 7 kategoride raporlama,
+  bulut güven verdiktlerine göre kullanıcı seçimli filtreleme (rozet/gizle/kaldır/
+  otomatik engelle), periyodik + talep üzerine verdikt senkronu. Bulut
+  yapılandırması için `docs/BACKEND.md`'ye bakın.
 
 ## Geliştirme
 

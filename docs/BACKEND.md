@@ -81,3 +81,14 @@ mantık taşınabilir (Faz 3 panel / mobil aynı çekirdeği kullanabilir) ve te
 - **Zaman sönümlemesi olay-güdümlü:** `weighted_score` yalnızca o handle'a yeni rapor gelince (submit_report) yeniden hesaplanıyor; rapor almayan hesabın puanı sönmeden kalır. Periyodik tam yeniden-puanlama işi eklenebilir.
 - **İşlem (transaction) bütünlüğü:** submit_report'taki kategori puanı + verdikt upsert'leri ayrı statement'lar; tek bir Postgres fonksiyonuna alınarak atomik yapılabilir.
 - **`profiles.reports_count`:** şema/spec'te var ama henüz yazılmıyor (rezerve).
+
+## Uzantı tarafı bağlama (Plan B)
+1. Supabase projenizi oluşturup deploy ettikten sonra `src/data/cloud-config.ts`
+   içine projenizin `url` (https://<ref>.supabase.co) ve **anon** anahtarını yazın.
+2. Supabase Dashboard → Authentication → URL Configuration → Redirect URLs'e
+   uzantının redirect URL'sini ekleyin: `https://<EXTENSION_ID>.chromiumapp.org/`
+   (Extension ID'yi `chrome://extensions` sayfasında görebilirsiniz.)
+3. Authentication → Providers'tan Google ve/veya Twitter (X) sağlayıcılarını
+   etkinleştirin.
+4. `npm run build` → `dist/`'i Chrome'a yükleyin. Ayarlar → "Topluluk filtresi"
+   sekmesinden giriş yapıp raporlama ve filtrelemeyi test edin.
