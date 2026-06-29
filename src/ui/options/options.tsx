@@ -1,13 +1,15 @@
 import { render } from 'preact';
 import { useEffect, useRef, useState } from 'preact/hooks';
 import { DataProvider, createChromeBackend } from '../../data/data-provider';
-import { DEFAULT_SETTINGS, type Settings, type Lists } from '../../core/models';
+import { DEFAULT_SETTINGS, type Settings, type Lists, CATEGORIES, CATEGORY_LABELS, type Category, type CommunityFilterSettings } from '../../core/models';
+import { signIn, signOut, isSignedIn } from '../../data/auth';
+import { cloudConfigured } from '../../data/cloud-config';
 import '../ui-shared/theme.css';
 import './options.css';
 
 const dp = new DataProvider(createChromeBackend());
 
-type Tab = 'sorting' | 'block' | 'white' | 'appearance';
+type Tab = 'sorting' | 'block' | 'white' | 'community' | 'appearance';
 
 function ListEditor({ items, onAdd, onRemove, onClear }: {
   items: string[]; onAdd: (h: string) => void; onRemove: (h: string) => void; onClear: () => void;
@@ -84,14 +86,27 @@ function Options() {
   const [tab, setTab] = useState<Tab>('sorting');
   const [settings, setSettings] = useState<Settings>(DEFAULT_SETTINGS);
   const [lists, setLists] = useState<Lists>({ blocklist: [], whitelist: [] });
+  const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
     dp.getSettings().then(setSettings);
     dp.getLists().then(setLists);
   }, []);
 
+  useEffect(() => { isSignedIn().then(setAuthed); }, []);
+
   const save = async (next: Settings) => { setSettings(next); await dp.setSettings(next); };
   const reloadLists = async () => setLists(await dp.getLists());
+
+  const saveCommunity = async (next: CommunityFilterSettings) => {
+    await save({ ...settings, community: next });
+  };
+
+  const toggleCategory = (cat: Category) => {
+    const set = new Set(settings.community.enabledCategories);
+    if (set.has(cat)) set.delete(cat); else set.add(cat);
+    void saveCommunity({ ...settings.community, enabledCategories: [...set] });
+  };
 
   return (
     <div class="xcf-page">
@@ -100,6 +115,7 @@ function Options() {
         <button class={`xcf-tab ${tab === 'sorting' ? 'xcf-tab--active' : ''}`} onClick={() => setTab('sorting')}>Sıralama</button>
         <button class={`xcf-tab ${tab === 'block' ? 'xcf-tab--active' : ''}`} onClick={() => setTab('block')}>Engelleme</button>
         <button class={`xcf-tab ${tab === 'white' ? 'xcf-tab--active' : ''}`} onClick={() => setTab('white')}>Beyaz liste</button>
+        <button class={`xcf-tab ${tab === 'community' ? 'xcf-tab--active' : ''}`} onClick={() => setTab('community')}>Topluluk filtresi</button>
         <button class={`xcf-tab ${tab === 'appearance' ? 'xcf-tab--active' : ''}`} onClick={() => setTab('appearance')}>Görünüm</button>
       </div>
 
@@ -143,6 +159,61 @@ function Options() {
             onAdd={async (h) => { await dp.addToWhitelist(h); await reloadLists(); }}
             onRemove={async (h) => { await dp.removeFromWhitelist(h); await reloadLists(); }}
             onClear={async () => { await dp.clearWhitelist(); await reloadLists(); }} />
+        </div>
+      )}
+
+      {tab === 'community' && (
+        <div>
+          {!cloudConfigured() && (
+            <p style="color:#f4a261;">Bulut yapılandırılmadı (src/data/cloud-config.ts). Topluluk özellikleri devre dışı.</p>
+          )}
+          <div class="xcf-row">
+            <span>Giriş durumu</span>
+            {authed ? (
+              <button class="xcf-del" onClick={async () => { await signOut(); setAuthed(false); }}>Çıkış yap</button>
+            ) : (
+              <span style="display:flex;gap:8px;">
+                <button class="xcf-accent-btn" disabled={!cloudConfigured()}
+                  onClick={async () => { try { await signIn('google'); setAuthed(true); } catch {} }}>Google ile giriş</button>
+                <button class="xcf-accent-btn" disabled={!cloudConfigured()}
+                  onClick={async () => { try { await signIn('twitter'); setAuthed(true); } catch {} }}>X ile giriş</button>
+              </span>
+            )}
+          </div>
+          <div class="xcf-row">
+            <span>Topluluk filtresi açık</span>
+            <input type="checkbox" checked={settings.community.enabled}
+              onChange={(e) => saveCommunity({ ...settings.community, enabled: (e.target as HTMLInputElement).checked })} />
+          </div>
+          <div class="xcf-row">
+            <span>Şüpheli hesap eylemi</span>
+            <select class="xcf-input" style="flex:0 0 180px;" value={settings.community.suspiciousAction}
+              onChange={(e) => saveCommunity({ ...settings.community, suspiciousAction: (e.target as HTMLSelectElement).value as CommunityFilterSettings['suspiciousAction'] })}>
+              <option value="off">Kapalı</option>
+              <option value="badge">Uyarı rozeti</option>
+              <option value="collapse">Gizle</option>
+            </select>
+          </div>
+          <div class="xcf-row">
+            <span>İşaretli (flagged) hesap eylemi</span>
+            <select class="xcf-input" style="flex:0 0 180px;" value={settings.community.flaggedAction}
+              onChange={(e) => saveCommunity({ ...settings.community, flaggedAction: (e.target as HTMLSelectElement).value as CommunityFilterSettings['flaggedAction'] })}>
+              <option value="warn">Uyarı rozeti</option>
+              <option value="collapse">Gizle</option>
+              <option value="remove">Tamamen kaldır</option>
+              <option value="autoblock">Otomatik engelle</option>
+            </select>
+          </div>
+          <div style="padding:12px 0;">
+            <div style="margin-bottom:8px;">Uygulanacak kategoriler</div>
+            {CATEGORIES.map((cat) => (
+              <label key={cat} style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+                <input type="checkbox" checked={settings.community.enabledCategories.includes(cat)}
+                  onChange={() => toggleCategory(cat)} />
+                <span>{CATEGORY_LABELS[cat]}</span>
+              </label>
+            ))}
+          </div>
         </div>
       )}
 
