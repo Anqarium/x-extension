@@ -2,8 +2,8 @@
 // anonKey herkese açıktır (publishable), commit edilebilir. Boşken topluluk
 // özellikleri devre dışı kalır; Faz 1 yerel işlevsellik etkilenmez.
 export const CLOUD = {
-  url: '',       // örn. https://abcdefgh.supabase.co
-  anonKey: '',   // public anon key
+  url: 'https://yepmwbshnzziypfsmkqc.supabase.co',       // örn. https://abcdefgh.supabase.co
+  anonKey: 'sb_publishable_kHlJH1ZddqzWwENssgi0zQ_tT42ZX1w',   // public anon key
 };
 
 export function cloudConfigured(): boolean {
